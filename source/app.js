@@ -1,6 +1,11 @@
 const APP=(R,host,opts)=>{
 const D=window.THILASTIKA_DATA,BLOG='https://ze-r.blogspot.com',$=i=>R.getElementById(i);
-let posts=D.posts.map(p=>(p.title=String(p.title).replace(/[​-‏﻿]/g,'').trim(),p)),cat=null,qs='',sortM='rel',favOnly=false,list=[],shown=0,N=0,DF=new Map(),SURF=new Map(),fc={cont:'',diet:''},wall=false,cur=null;
+/* αφαίρεση μπλοκ εσωτερικών λινκ (<div style="float:right"> και λίστες λινκ χωρίς εικόνες) */
+const cleanHtml=h=>{h=String(h||'');if(!/<div/i.test(h))return h;const d=new DOMParser().parseFromString('<body><div id="r">'+h+'</div></body>','text/html'),r=d.getElementById('r');
+  const ws=s=>s.replace(/[\s ]+/g,'');
+  const bad=e=>{if(/float\s*:\s*right/i.test(e.getAttribute('style')||''))return true;if(e.querySelector('div,img'))return false;const an=[...e.querySelectorAll('a')];if(an.length<2)return false;const t=ws(e.textContent).length,a=ws(an.map(x=>x.textContent).join('')).length,b=ws([...e.querySelectorAll('b,strong')].filter(x=>!x.closest('a')).map(x=>x.textContent).join('')).length;return a>=.8*t||(a+b)>=.9*t};
+  [...r.querySelectorAll('div')].reverse().forEach(e=>{if(!e.isConnected)return;if(bad(e)||(!e.textContent.trim()&&!e.querySelector('img,iframe')))e.remove()});return r.innerHTML};
+let posts=D.posts.map(p=>(p.title=String(p.title).replace(/[​-‏﻿]/g,'').trim(),p.content=cleanHtml(p.content),p)),cat=null,qs='',sortM='rel',favOnly=false,list=[],shown=0,N=0,DF=new Map(),SURF=new Map(),fc={cont:'',diet:''},wall=false,cur=null;
 const BATCH=24,esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const nw=w=>w.toLocaleLowerCase('el').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/ς/g,'σ');
 const fd=v=>{const d=new Date(v);return isNaN(d)?'—':new Intl.DateTimeFormat('el-GR',{day:'numeric',month:'short',year:'numeric'}).format(d)};
@@ -178,7 +183,7 @@ new IntersectionObserver(en=>{if(en[0].isIntersecting)more()},{rootMargin:'700px
 /* ---------- συγχρονισμός Blogger ---------- */
 async function sync(quiet){const b=$('bSync');b.disabled=true;try{const last=posts.reduce((m,p)=>p.updated>m?p.updated:m,'');
   const j=await(await fetch(`${BLOG}/feeds/posts/default?alt=json&max-results=150&updated-min=${encodeURIComponent(last)}`)).json();let n=0;
-  (j.feed.entry||[]).forEach(e=>{const id=e.id.$t,c=e.content?e.content.$t:'',al=(e.link||[]).find(l=>l.rel=='alternate'),o={id,title:e.title.$t.replace(/[​-‏﻿]/g,'').trim(),originalTitle:e.title.$t,published:e.published.$t,updated:e.updated.$t,categories:(e.category||[]).map(x=>x.term),content:c,snippet:strip(c).replace(/\s+/g,' ').trim().slice(0,200),url:al&&al.href,fresh:true};
+  (j.feed.entry||[]).forEach(e=>{const id=e.id.$t,c=cleanHtml(e.content?e.content.$t:''),al=(e.link||[]).find(l=>l.rel=='alternate'),o={id,title:e.title.$t.replace(/[​-‏﻿]/g,'').trim(),originalTitle:e.title.$t,published:e.published.$t,updated:e.updated.$t,categories:(e.category||[]).map(x=>x.term),content:c,snippet:strip(c).replace(/\s+/g,' ').trim().slice(0,200),url:al&&al.href,fresh:true};
    const i=posts.findIndex(p=>p.id==id);if(i<0)posts.push(o);else if(posts[i].updated!=o.updated)posts[i]=o;else return;AR.delete(id);n++});
   if(n){index();cats();stats();render()}if(!quiet||n)toast(n?`${n} νέες/ενημερωμένες αναρτήσεις από το Blogger`:'Όλα ενημερωμένα')}
   catch(e){if(!quiet)toast('Δεν υπάρχει σύνδεση με το Blogger αυτή τη στιγμή')}b.disabled=false}
