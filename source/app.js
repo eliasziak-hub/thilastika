@@ -48,10 +48,7 @@ function card(p){const a=A_(p);return `<article class="card"><div class="pt" sty
 function more(){const c=$('cards'),b=list.slice(shown,shown+BATCH);if(!b.length)return;c.insertAdjacentHTML('beforeend',b.map(card).join(''));shown+=b.length;
   c.querySelectorAll('.pt:not(.ok) img').forEach(im=>{const ok=()=>im.parentNode.classList.add('ok');im.complete?requestAnimationFrame(ok):im.addEventListener('load',ok,{once:true})})}
 function render(){list=filter();shown=0;$('cards').innerHTML=list.length?'':'<div class="empty"><b>Δεν βρέθηκαν είδη</b><br>Δοκίμασε άλλη λέξη, κατηγορία ή φίλτρο.</div>';more();
-  $('cnt').textContent=`${list.length} από ${posts.length}`;
-  const w=new Map();list.slice(0,300).forEach(p=>p._v.forEach((v,s)=>w.set(s,(w.get(s)||0)+v)));
-  const top=[...w].sort((a,b)=>b[1]-a[1]).slice(0,16),mx=top[0]?top[0][1]:1;
-  $('cloud').innerHTML='<small>Κορυφαίοι όροι:</small>'+top.map(([s,v])=>`<button data-k="${esc(s)}" style="font-size:${(11+9*v/mx).toFixed(1)}px">${esc(kw(s))}</button>`).join('')}
+  $('cnt').textContent=`${list.length} από ${posts.length}`;}
 function facetsUI(){const cc=CONT.map(c=>c[0]),dd=DIET.map(c=>c[0]);
   $('facets').innerHTML='<small>Ήπειρος / ενδιαίτημα:</small>'+cc.map(c=>`<button class="fc ${fc.cont==c?'on':''}" data-fc="cont:${c}">${c}</button>`).join('')+'<small style="margin-left:8px">Διατροφή:</small>'+dd.map(c=>`<button class="fc ${fc.diet==c?'on':''}" data-fc="diet:${c}">${c}</button>`).join('')}
 function cats(){const cn={};posts.forEach(p=>p.categories.forEach(c=>cn[c]=(cn[c]||0)+1));const names=Object.keys(cn).sort((a,b)=>a.localeCompare(b,'el'));
@@ -107,12 +104,12 @@ function openLb(i){LB=cur?cur.lb:[];if(!LB.length)return;lbi=(i+LB.length)%LB.le
 const closeLb=()=>{$('lb').classList.remove('show');$('lbI').removeAttribute('src')};
 function open(id,hash=true){const p=byId(id);if(!p)return;const a=A_(p),f=p._f,B=build(p);cur={id:p.id,lb:B.lb};
   $('mHero').innerHTML=a.svg;$('mT').textContent=p.title;$('mAka').textContent=B.aka;$('mAka').style.display=B.aka?'':'none';
-  $('mK').innerHTML=p.categories.map(c=>`<button class="tag" data-c="${esc(c)}">${esc(c)}</button>`).join('')+p._kw.map(s=>`<button class="tag" style="background:var(--warm-soft);color:var(--warm)" data-k="${esc(s)}">${esc(kw(s))}</button>`).join('');
-  $('mFacts').innerHTML=[f.len&&`<span class="fact">📏 <b>${esc(f.len)}</b></span>`,f.kg&&`<span class="fact">⚖ <b>${esc(f.kg)}</b></span>`,...f.cont.map(c=>`<span class="fact">🌍 ${esc(c)}</span>`),...f.diet.slice(0,2).map(c=>`<span class="fact">🍽 ${esc(c)}</span>`),`<span class="fact">📅 ${fd(p.published)}${p.updated?' · ενημ. '+fd(p.updated):''}</span>`].filter(Boolean).join('');
+  $('mK').innerHTML=p.categories.map(c=>`<button class="tag" data-c="${esc(c)}">${esc(c)}</button>`).join('');
+  $('mFacts').innerHTML=f.cont.map(c=>`<span class="fact">🌍 ${esc(c)}</span>`).join('');
   $('mA').innerHTML=B.html||'<p style="color:var(--muted)">Η ανάρτηση δεν έχει κείμενο.</p>';
   $('mToc').innerHTML=B.hs.length>=3?B.hs.map(([i,t])=>`<button data-h="${i}">${esc(t)}</button>`).join(''):'';
   $('mA').querySelectorAll('img').forEach(im=>im.addEventListener('error',()=>{const f=im.closest('figure');if(f)f.remove()},{once:true}));
-  const L=$('mL');L.href=p.url||BLOG+'/search?q='+encodeURIComponent(p.title);$('mF').classList.toggle('on',FAV.has(p.id));$('mF').dataset.f=p.id;$('mC').dataset.id=p.id;$('mCmp').dataset.m=p.id;$('mCmp').classList.toggle('on',CMP.has(p.id));$('mDl').dataset.id=p.id;
+  const L=$('mL');L.href=p.url||BLOG+'/search?q='+encodeURIComponent(p.title);$('mCmp').dataset.m=p.id;$('mCmp').classList.toggle('on',CMP.has(p.id));$('mDl').dataset.id=p.id;
   const s=posts.filter(o=>o!==p).map(o=>[o,sim(p,o)]).sort((a,b)=>b[1]-a[1]).slice(0,8);
   $('mSim').innerHTML=s.map(([o,v])=>`<button data-o="${esc(o.id)}"><img src="${art(o)}" alt="" width="160" height="160" loading="lazy">${esc(o.title)}<small>${Math.round(v*100)}%</small></button>`).join('');
   const ix=list.findIndex(x=>x.id==p.id);$('mPos').textContent=ix>=0?`${ix+1} από ${list.length}`:'';
@@ -166,7 +163,6 @@ $('mX').onclick=close;$('bk').addEventListener('click',e=>{if(e.target==$('bk'))
 $('mPrev').onclick=()=>step(-1);$('mNext').onclick=()=>step(1);
 $('lbX').onclick=closeLb;$('lbP').onclick=()=>openLb(lbi-1);$('lbN').onclick=()=>openLb(lbi+1);$('lb').addEventListener('click',e=>{if(e.target==$('lb'))closeLb()});
 $('cmpGo').onclick=compare;$('cmpClr').onclick=()=>{[...CMP].forEach(toggleCmp)};
-$('mC').onclick=async e=>{const p=byId(e.currentTarget.dataset.id),u=p.url||location.href;try{await navigator.clipboard.writeText(u);toast('Ο σύνδεσμος αντιγράφηκε')}catch(_){toast(u)}};
 $('mCmp').onclick=e=>{toggleCmp(e.currentTarget.dataset.m);e.currentTarget.classList.toggle('on',CMP.has(e.currentTarget.dataset.m))};
 $('mDl').onclick=e=>{const p=byId(e.currentTarget.dataset.id),a=A_(p),n=(sid(p)||'portrait');const url=URL.createObjectURL(new Blob([a.svg],{type:'image/svg+xml'})),x=document.createElement('a');x.href=url;x.download='thilastika-'+n+'.svg';x.click();setTimeout(()=>URL.revokeObjectURL(url),2000);toast('Λήψη πορτραίτου SVG')};
 $('mHero').addEventListener('pointermove',e=>{const b=e.currentTarget.getBoundingClientRect(),x=(e.clientX-b.left)/b.width-.5,y=(e.clientY-b.top)/b.height-.5,s=e.currentTarget.firstElementChild;if(s)s.style.transform=`rotateY(${x*10}deg) rotateX(${-y*10}deg) scale(1.03)`});
