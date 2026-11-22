@@ -42,7 +42,7 @@ button,input,select{font:inherit}button{cursor:pointer}
 .mc{padding:22px;overflow:auto}.art{font-size:15px;line-height:1.8;overflow-wrap:anywhere}.art img{max-width:100%;height:auto;border-radius:9px}.art a{color:var(--accent)}
 .sim{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:9px;margin-top:10px}.sim button{border:1px solid var(--line);background:#fff;border-radius:12px;padding:8px;text-align:center;font-size:12px}.sim button:hover{background:var(--accent-soft)}.sim img{width:100%;height:64px;object-fit:cover;border-radius:10px;display:block;margin:0 auto 4px}.sim small{display:block;color:var(--muted)}
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#1d3a33;color:#fff;border-radius:99px;padding:9px 18px;font-size:13px;z-index:40;opacity:0;pointer-events:none;transition:.3s}.toast.on{opacity:1}
-@media(max-width:900px){.layout{grid-template-columns:1fr}.side{position:static;max-height:none}.cats{flex-direction:row;overflow-x:auto;padding-bottom:4px}.cat{width:auto;white-space:nowrap}.stats{grid-template-columns:repeat(2,1fr)}.top-meta{display:none}}
+@media(max-width:900px){.layout{grid-template-columns:minmax(0,1fr)}.side{position:static;max-height:none}.cats{flex-direction:row;overflow-x:auto;padding-bottom:4px}.cat{width:auto;white-space:nowrap}.stats{grid-template-columns:repeat(2,1fr)}.top-meta{display:none}}
 @media(max-width:600px){.layout{padding:0 12px}.row{grid-template-columns:1fr}.cards{grid-template-columns:1fr 1fr;gap:10px}.mh{flex-wrap:wrap}}
 </style>
 </head>
@@ -141,7 +141,7 @@ function bat(C){const{m,d,l,k}=C,w=`M100 62C70 30 30 40 12 74Q28 66 36 80Q52 68 
 function svgFor(p){const c=p.categories.find(x=>KIND[x]),[k,v]=KIND[c]||['ro','rat'],h=H(p.title),r=n=>(h>>(n*3))&7,tr=traits(p),pal=PAL[v]||PAL.rat,mh=tr.main||pal[r(0)%pal.length],Q=([a,b,n])=>hsl(a,b,n),
  C={m:Q(mh),d:Q([mh[0],mh[1]+5,mh[2]-18]),l:Q([mh[0],mh[1]-8,mh[2]+24]),k:Q([mh[0],mh[1],12]),x:Q(tr.mark||[mh[0],mh[1],mh[2]-30])},S=SC[k]||SC.ro,sw=k=='ma'||k=='ba';
  const sub=k=='ma'?marine(v,C):k=='ba'?bat(C):v=='sea'||v=='man'?seal(v,C):quad(v,PR[v]||PR.rat,tr,C,r);
- const ex=k=='ba'?'<circle cx="160" cy="30" r="14" fill="#f4eecb"/>':k=='un'||k=='el'?'<circle cx="162" cy="30" r="16" fill="#fff2c4" opacity=".8"/>':'',
+ const ex=k=='ba'?'<circle cx="100" cy="20" r="11" fill="#f4eecb"/>':k=='un'||k=='el'?'<circle cx="36" cy="38" r="14" fill="#fff2c4" opacity=".8"/>':'',
  gr=sw?'':`<ellipse cx="100" cy="146" rx="150" ry="32" fill="${S[2]}"/>`+(k=='pr'||v=='sloth'?'<path d="M-5 121H205" stroke="#8a5a3a" stroke-width="6"/><ellipse cx="20" cy="119" rx="12" ry="5" fill="#6d9a55"/><ellipse cx="182" cy="119" rx="12" ry="5" fill="#6d9a55"/>':'');
  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150"><defs><linearGradient id="sk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${S[0]}"/><stop offset="1" stop-color="${S[1]}"/></linearGradient></defs><rect width="200" height="150" fill="url(#sk)"/>${ex}${gr}${sub}</svg>`}
 /* portrait cache: own Cache bucket, never deleted on new versions */
