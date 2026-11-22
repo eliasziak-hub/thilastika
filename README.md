@@ -1,0 +1,31 @@
+# Θηλαστικά — βιβλιοθήκη ειδών (v5)
+
+Εφαρμογή για ενσωμάτωση στο Blogger: 320 είδη με **πορτραίτο SVG για κάθε είδος** (ζωγραφισμένο με κώδικα, 160 px),
+αναζήτηση TF-IDF, φίλτρα (ήπειρος/διατροφή), είδος της ημέρας, κουίζ «Ποιο ζώο είναι;», σύγκριση έως 3 ειδών,
+προβολή «Κάρτες / Τοίχος», σκοτεινό θέμα, αγαπημένα, και αναδυόμενο παράθυρο με φωτογραφία δίπλα στο κείμενο,
+περιεχόμενα, λίστες, συλλογή εικόνων και μεγέθυνση (lightbox) με βέλη/πληκτρολόγιο.
+
+## Ενσωμάτωση (όπως πριν)
+```html
+<div data-poulia4-library></div>
+<script src="https://eliasziak-hub.github.io/thilastika/embed.js" defer></script>
+```
+Προαιρετικά attributes στο div: `data-cat="Αιγώδη"`, `data-theme="dark"`. Το `data.js` φορτώνεται αυτόματα από τον ίδιο φάκελο με το `embed.js`.
+
+## GitHub Pages
+1. Ανέβασε **όλα** τα αρχεία του φακέλου στο repo `thilastika` (branch `main`).
+2. Settings → Pages → Source: **GitHub Actions** (το workflow `.github/workflows/pages.yml` είναι έτοιμο)
+   — ή Source: *Deploy from a branch* → `main` / root (το `.nojekyll` υπάρχει).
+3. Διεύθυνση: `https://eliasziak-hub.github.io/thilastika/`
+
+## Cloudflare Pages (ή άλλη πλατφόρμα)
+- **Γρήγορα:** διπλό κλικ στο `deploy-cloudflare.bat` (Windows) ή `./deploy-cloudflare.sh` — χρειάζεται Node.js και λογαριασμό Cloudflare.
+- **Ή από τον πίνακα:** Workers & Pages → Create → Pages → Upload assets → σύρε τον φάκελο.
+- Το `_headers` δίνει cache (και δουλεύει στο Cloudflare Pages/Netlify). Στο blog βάλε το δικό σου URL, π.χ. `https://thilastika.pages.dev/embed.js`.
+- Οποιοδήποτε στατικό hosting δουλεύει: αρκούν τα 3 αρχεία `index.html`, `embed.js`, `data.js`.
+
+## Ενημέρωση δεδομένων
+Η εφαρμογή συγχρονίζεται ζωντανά με το ze-r.blogspot.com (κουμπί «Ανανέωση» + αυτόματα). Αν αλλάξεις το `data.js`, άλλαξε και το `?v=5` στο `source/build.py` και ξαναχτίσε.
+
+## Επεξεργασία κώδικα
+Στο `source/` είναι τα αρχικά αρχεία. `cd source && python3 build.py` παράγει νέο `../embed.js` (ένα αρχείο, χωρίς εξωτερικές εξαρτήσεις).
