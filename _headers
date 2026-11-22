@@ -1,0 +1,7 @@
+/*
+  Content-Security-Policy: frame-ancestors *
+  X-Content-Type-Options: nosniff
+/embed.js
+  Cache-Control: public, max-age=3600
+/index.html
+  Cache-Control: public, max-age=300
