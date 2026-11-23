@@ -40,7 +40,8 @@ function facts(p){const t=nw(strip(p.content)),f={cont:[],diet:[]};
   return f}
 /* ---------- πορτραίτα ---------- */
 const AR=new Map();
-const A_=p=>{let a=AR.get(p.id);if(!a){const pk=Species.pick(p),svg=Portrait.render(pk.spec,p.id),sc=Portrait.SC[pk.spec.s]||Portrait.SC.savanna;a={svg,key:pk.key,bg:sc.s,uri:'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)};AR.set(p.id,a)}return a};
+const PK=p=>{if(p.spk&&Species.presets[p.spk]){const b=Species.presets[p.spk];return{key:p.spk,spec:p.spo?Object.assign({},b,p.spo):b}}return Species.pick(p)};
+const A_=p=>{let a=AR.get(p.id);if(!a){const pk=PK(p),ns=__G.FaunaMap.conv(pk.key,pk.spec),svg=ns?__G.Fauna.render(ns,p.id):Portrait.render(pk.spec,p.id),sc=Portrait.SC[pk.spec.s]||Portrait.SC.savanna;a={svg,key:pk.key,bg:sc.s,uri:'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)};AR.set(p.id,a)}return a};
 const art=p=>A_(p).uri;
 /* ---------- φίλτρα / λίστα ---------- */
 function filter(){const q=nw(qs.trim()),qk=q?[...new Set(words(qs).map(a=>a[0]))]:[];
@@ -49,18 +50,18 @@ function filter(){const q=nw(qs.trim()),qk=q?[...new Set(words(qs).map(a=>a[0]))
   const t=p=>Date.parse(p.published)||0;
   if(sortM=='rnd')return shuffle(r);
   r.sort((a,b)=>sortM=='az'?a.title.localeCompare(b.title,'el'):sortM=='za'?b.title.localeCompare(a.title,'el'):sortM=='old'?t(a)-t(b):sortM=='rel'&&q?b._s-a._s:t(b)-t(a));return r}
-function card(p){const a=A_(p);return `<article class="card"><div class="pt" style="background:linear-gradient(180deg,${a.bg[0]},${a.bg[1]})" data-o="${esc(p.id)}">${p.fresh?'<span class="new">Νέο</span>':''}<button class="cmp ${CMP.has(p.id)?'on':''}" data-m="${esc(p.id)}" aria-label="Σύγκριση" title="Προσθήκη στη σύγκριση">⇄</button><button class="fav ${FAV.has(p.id)?'on':''}" data-f="${esc(p.id)}" aria-label="Αγαπημένο">♥</button><img src="${a.uri}" alt="Πορτρέτο: ${esc(p.title)}" width="160" height="160" loading="lazy" decoding="async"></div><div class="body"><div class="meta">${p.categories.slice(0,2).map(esc).join(' · ')} · ${fd(p.published)}</div><h3>${esc(p.title)}</h3><p class="sn">${esc(p.snippet)}</p><div class="kw">${p._kw.slice(0,3).map(s=>`<button data-k="${esc(s)}">${esc(kw(s))}</button>`).join('')}</div><button class="open" data-o="${esc(p.id)}">Άνοιγμα →</button></div></article>`}
+function card(p){const a=A_(p);return `<article class="card"><div class="pt" style="background:linear-gradient(180deg,${a.bg[0]},${a.bg[1]})" data-o="${esc(p.id)}">${p.fresh?'<span class="new">Νέο</span>':''}<button class="cmp ${CMP.has(p.id)?'on':''}" data-m="${esc(p.id)}" aria-label="Σύγκριση" title="Προσθήκη στη σύγκριση">⇄</button><button class="fav ${FAV.has(p.id)?'on':''}" data-f="${esc(p.id)}" aria-label="Αγαπημένο">♥</button><img src="${a.uri}" alt="Πορτρέτο: ${esc(p.title)}" width="240" height="180" loading="lazy" decoding="async"></div><div class="body"><div class="meta">${p.categories.slice(0,2).map(esc).join(' · ')} · ${fd(p.published)}</div><h3>${esc(p.title)}</h3><p class="sn">${esc(p.snippet)}</p><div class="kw">${p._kw.slice(0,3).map(s=>`<button data-k="${esc(s)}">${esc(kw(s))}</button>`).join('')}</div><button class="open" data-o="${esc(p.id)}">Άνοιγμα →</button></div></article>`}
 function more(){const c=$('cards'),b=list.slice(shown,shown+BATCH);if(!b.length)return;c.insertAdjacentHTML('beforeend',b.map(card).join(''));shown+=b.length;
   c.querySelectorAll('.pt:not(.ok) img').forEach(im=>{const ok=()=>im.parentNode.classList.add('ok');im.complete?requestAnimationFrame(ok):im.addEventListener('load',ok,{once:true})})}
 function render(){list=filter();shown=0;$('cards').innerHTML=list.length?'':'<div class="empty"><b>Δεν βρέθηκαν είδη</b><br>Δοκίμασε άλλη λέξη, κατηγορία ή φίλτρο.</div>';more();
   $('cnt').textContent=`${list.length} από ${posts.length}`;}
 function facetsUI(){const cc=CONT.map(c=>c[0]),dd=DIET.map(c=>c[0]);
   $('facets').innerHTML='<small>Ήπειρος / ενδιαίτημα:</small>'+cc.map(c=>`<button class="fc ${fc.cont==c?'on':''}" data-fc="cont:${c}">${c}</button>`).join('')+'<small style="margin-left:8px">Διατροφή:</small>'+dd.map(c=>`<button class="fc ${fc.diet==c?'on':''}" data-fc="diet:${c}">${c}</button>`).join('')}
-function cats(){const cn={};posts.forEach(p=>p.categories.forEach(c=>cn[c]=(cn[c]||0)+1));const names=Object.keys(cn).sort((a,b)=>a.localeCompare(b,'el'));
-  $('cats').innerHTML=[['Όλες',null,posts.length],...names.map(c=>[c,c,cn[c]])].map(([n,v,c])=>{const f=v&&posts.find(p=>p.categories.includes(v));return `<button class="cat ${cat===v?'on':''}" data-c="${v===null?'':esc(v)}">${f?`<img src="${art(f)}" alt="" width="30" height="30" loading="lazy" decoding="async">`:''}<span>${esc(n)}</span><i>${c}</i></button>`}).join('');
+function cats(){const cn={};posts.forEach(p=>p.categories.forEach(c=>cn[c]=(cn[c]||0)+1));const GRC='Ελληνικά είδη',names=Object.keys(cn).sort((a,b)=>a==GRC?-1:b==GRC?1:a.localeCompare(b,'el'));
+  $('cats').innerHTML=[['Όλες',null,posts.length],...names.map(c=>[c,c,cn[c]])].map(([n,v,c])=>{const f=v&&posts.find(p=>p.categories.includes(v));return `<button class="cat ${cat===v?'on':''}" data-c="${v===null?'':esc(v)}">${f?`<img src="${art(f)}" alt="" width="30" height="30" loading="lazy" decoding="async">`:''}<span>${v===GRC?'🇬🇷 ':''}${esc(n)}</span><i>${c}</i></button>`}).join('');
   $('s2').textContent=names.length}
-function stats(){$('tTot').textContent=posts.length+' αναρτήσεις';$('s1').textContent=posts.length;$('s3').textContent=DF.size.toLocaleString('el');$('s4').textContent=fd(posts.reduce((m,p)=>p.updated>m?p.updated:m,''))}
-function daily(){const p=posts[Math.floor(Date.now()/864e5)%posts.length];if(!p)return;$('daily').innerHTML=`<img src="${art(p)}" alt="Πορτρέτο: ${esc(p.title)}" width="160" height="160" data-o="${esc(p.id)}"><div><small>ΕΙΔΟΣ ΤΗΣ ΗΜΕΡΑΣ</small><h2>${esc(p.title)}</h2><p>${esc(p.snippet)}</p><button class="btn pri" data-o="${esc(p.id)}">Διάβασε περισσότερα →</button></div>`}
+function stats(){$('tTot').textContent=posts.length+' αναρτήσεις';$('s1').textContent=posts.length;$('s3').textContent=DF.size.toLocaleString('el');$('s4').textContent=fd(posts.reduce((m,p)=>!p.atlas&&p.updated>m?p.updated:m,''))}
+function daily(){const p=posts[Math.floor(Date.now()/864e5)%posts.length];if(!p)return;$('daily').innerHTML=`<img src="${art(p)}" alt="Πορτρέτο: ${esc(p.title)}" width="240" height="180" data-o="${esc(p.id)}"><div><small>ΕΙΔΟΣ ΤΗΣ ΗΜΕΡΑΣ</small><h2>${esc(p.title)}</h2><p>${esc(p.snippet)}</p><button class="btn pri" data-o="${esc(p.id)}">Διάβασε περισσότερα →</button></div>`}
 const byId=id=>posts.find(p=>p.id==id),sid=p=>p.id.split('post-').pop();
 /* ---------- επεξεργασία κειμένου ανάρτησης ---------- */
 const rs=(u,s)=>String(u||'').replace(/^http:/,'https:').replace(/\/(?:s\d+|w\d+|h\d+)(?:-[a-zA-Z0-9]+)*\/([^/]+)$/,(m,f)=>`/s${s}${/-rw/.test(m)?'-rw':''}/${f}`);
@@ -114,9 +115,9 @@ function open(id,hash=true){const p=byId(id);if(!p)return;const a=A_(p),f=p._f,B
   $('mA').innerHTML=B.html||'<p style="color:var(--muted)">Η ανάρτηση δεν έχει κείμενο.</p>';
   $('mToc').innerHTML=B.hs.length>=3?B.hs.map(([i,t])=>`<button data-h="${i}">${esc(t)}</button>`).join(''):'';
   $('mA').querySelectorAll('img').forEach(im=>im.addEventListener('error',()=>{const f=im.closest('figure');if(f)f.remove()},{once:true}));
-  const L=$('mL');L.href=p.url||BLOG+'/search?q='+encodeURIComponent(p.title);$('mCmp').dataset.m=p.id;$('mCmp').classList.toggle('on',CMP.has(p.id));$('mDl').dataset.id=p.id;
+  const L=$('mL');L.href=p.url||BLOG+'/search?q='+encodeURIComponent(p.title);L.textContent=p.atlas?'Περισσότερα στη Wikipedia ↗':'Άνοιγμα στο ιστολόγιο ↗';$('mCmp').dataset.m=p.id;$('mCmp').classList.toggle('on',CMP.has(p.id));$('mDl').dataset.id=p.id;
   const s=posts.filter(o=>o!==p).map(o=>[o,sim(p,o)]).sort((a,b)=>b[1]-a[1]).slice(0,8);
-  $('mSim').innerHTML=s.map(([o,v])=>`<button data-o="${esc(o.id)}"><img src="${art(o)}" alt="" width="160" height="160" loading="lazy">${esc(o.title)}<small>${Math.round(v*100)}%</small></button>`).join('');
+  $('mSim').innerHTML=s.map(([o,v])=>`<button data-o="${esc(o.id)}"><img src="${art(o)}" alt="" width="240" height="180" loading="lazy">${esc(o.title)}<small>${Math.round(v*100)}%</small></button>`).join('');
   const ix=list.findIndex(x=>x.id==p.id);$('mPos').textContent=ix>=0?`${ix+1} από ${list.length}`:'';
   $('bk').classList.add('show');document.body.style.overflow='hidden';$('mc').scrollTop=0;if(hash)try{history.replaceState(null,'','#p='+sid(p))}catch(e){}}
 function close(){closeLb();$('bk').classList.remove('show');if(!$('bk2').classList.contains('show'))document.body.style.overflow='';cur=null;try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
@@ -127,7 +128,7 @@ function cmpBar(){const n=CMP.size;$('cmpbar').classList.toggle('on',n>0);$('cmp
 function toggleCmp(id){if(CMP.has(id))CMP.delete(id);else{if(CMP.size>=3)return toast('Έως 3 είδη στη σύγκριση');CMP.add(id)}R.querySelectorAll(`[data-m="${CSS.escape(id)}"]`).forEach(b=>b.classList.toggle('on',CMP.has(id)));cmpBar()}
 function shared(a,b){const r=[];a._v.forEach((w,k)=>{const o=b._v.get(k);if(o)r.push([k,Math.min(w,o)])});return r.sort((x,y)=>y[1]-x[1]).slice(0,5).map(x=>kw(x[0]))}
 function compare(){const ps=[...CMP].map(byId).filter(Boolean);if(ps.length<2)return toast('Διάλεξε τουλάχιστον 2 είδη (κουμπί ⇄)');
-  let h=`<h2>Σύγκριση ειδών</h2><div class="sub">Στοιχεία που εντοπίστηκαν αυτόματα στο κείμενο κάθε ανάρτησης</div><div class="cmpg" style="--n:${ps.length}">`+ps.map(p=>{const f=p._f;return `<div class="cc"><img src="${art(p)}" alt="" width="160" height="160"><h3>${esc(p.title)}</h3><dl><dt>Κατηγορίες</dt><dd>${p.categories.map(esc).join(', ')||'—'}</dd><dt>Μήκος</dt><dd>${esc(f.len||'—')}</dd><dt>Βάρος</dt><dd>${esc(f.kg||'—')}</dd><dt>Περιοχή</dt><dd>${f.cont.join(', ')||'—'}</dd><dt>Διατροφή</dt><dd>${f.diet.join(', ')||'—'}</dd><dt>Βασικοί όροι</dt><dd>${p._kw.map(kw).map(esc).join(', ')}</dd></dl><button class="btn" data-o="${esc(p.id)}" style="margin-top:10px">Άνοιγμα →</button></div>`}).join('')+'</div>';
+  let h=`<h2>Σύγκριση ειδών</h2><div class="sub">Στοιχεία που εντοπίστηκαν αυτόματα στο κείμενο κάθε ανάρτησης</div><div class="cmpg" style="--n:${ps.length}">`+ps.map(p=>{const f=p._f;return `<div class="cc"><img src="${art(p)}" alt="" width="240" height="180"><h3>${esc(p.title)}</h3><dl><dt>Κατηγορίες</dt><dd>${p.categories.map(esc).join(', ')||'—'}</dd><dt>Μήκος</dt><dd>${esc(f.len||'—')}</dd><dt>Βάρος</dt><dd>${esc(f.kg||'—')}</dd><dt>Περιοχή</dt><dd>${f.cont.join(', ')||'—'}</dd><dt>Διατροφή</dt><dd>${f.diet.join(', ')||'—'}</dd><dt>Βασικοί όροι</dt><dd>${p._kw.map(kw).map(esc).join(', ')}</dd></dl><button class="btn" data-o="${esc(p.id)}" style="margin-top:10px">Άνοιγμα →</button></div>`}).join('')+'</div>';
   for(let i=0;i<ps.length;i++)for(let j=i+1;j<ps.length;j++)h+=`<div class="simrow"><b>${Math.round(sim(ps[i],ps[j])*100)}%</b> ομοιότητα TF-IDF · ${esc(ps[i].title)} ↔ ${esc(ps[j].title)} · κοινοί όροι: ${shared(ps[i],ps[j]).map(esc).join(', ')||'—'}</div>`;
   h+='<div class="acts" style="margin-top:16px"><button class="btn" id="pnClose">Κλείσιμο</button></div>';showPn(h)}
 function showPn(h){$('pn').innerHTML=h;$('bk2').classList.add('show');document.body.style.overflow='hidden'}
@@ -181,9 +182,9 @@ const onKey=e=>{const lbOn=$('lb').classList.contains('show'),mo=$('bk').classLi
 document.addEventListener('keydown',onKey);
 new IntersectionObserver(en=>{if(en[0].isIntersecting)more()},{rootMargin:'700px'}).observe($('sent'));
 /* ---------- συγχρονισμός Blogger ---------- */
-async function sync(quiet){const b=$('bSync');b.disabled=true;try{const last=posts.reduce((m,p)=>p.updated>m?p.updated:m,'');
+async function sync(quiet){const b=$('bSync');b.disabled=true;try{const last=posts.reduce((m,p)=>!p.atlas&&p.updated>m?p.updated:m,'');
   const j=await(await fetch(`${BLOG}/feeds/posts/default?alt=json&max-results=150&updated-min=${encodeURIComponent(last)}`)).json();let n=0;
-  (j.feed.entry||[]).forEach(e=>{const id=e.id.$t,c=cleanHtml(e.content?e.content.$t:''),al=(e.link||[]).find(l=>l.rel=='alternate'),o={id,title:e.title.$t.replace(/[​-‏﻿]/g,'').trim(),originalTitle:e.title.$t,published:e.published.$t,updated:e.updated.$t,categories:(e.category||[]).map(x=>x.term),content:c,snippet:strip(c).replace(/\s+/g,' ').trim().slice(0,200),url:al&&al.href,fresh:true};
+  (j.feed.entry||[]).forEach(e=>{const id=e.id.$t,c=cleanHtml(e.content?e.content.$t:''),al=(e.link||[]).find(l=>l.rel=='alternate'),o={id,title:e.title.$t.replace(/[​-‏﻿]/g,'').trim(),originalTitle:e.title.$t,published:e.published.$t,updated:e.updated.$t,categories:(e.category||[]).map(x=>x.term=='Ελλάδα'?'Ελληνικά είδη':x.term),content:c,snippet:strip(c).replace(/\s+/g,' ').trim().slice(0,200),url:al&&al.href,fresh:true};
    const i=posts.findIndex(p=>p.id==id);if(i<0)posts.push(o);else if(posts[i].updated!=o.updated)posts[i]=o;else return;AR.delete(id);n++});
   if(n){index();cats();stats();render()}if(!quiet||n)toast(n?`${n} νέες/ενημερωμένες αναρτήσεις από το Blogger`:'Όλα ενημερωμένα')}
   catch(e){if(!quiet)toast('Δεν υπάρχει σύνδεση με το Blogger αυτή τη στιγμή')}b.disabled=false}
