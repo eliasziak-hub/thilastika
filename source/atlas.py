@@ -78,7 +78,7 @@ for it in A:
     html=''.join('<p>'+x+'</p>' for x in txt)
     wiki='https://el.wikipedia.org/wiki/Special:Search?search='+urllib.parse.quote(lat.split(' (')[0])
     plain=' '.join(txt)
-    p={'id':'atlas:'+slug,'title':title,'originalTitle':title,'status':'LIVE','published':'2026-11-23T00:00:00Z','updated':'2026-11-23T00:00:00Z','categories':cats,'content':'<p><b>'+title+'</b> ('+lat+')</p>'+html,'searchText':title+' '+lat+' '+plain,'snippet':(title+' ('+lat+') '+plain)[:200],'image':'','isCode':'False','url':wiki,'atlas':1,'spk':spk}
+    p={'id':'atlas:'+slug,'title':title,'originalTitle':title,'status':'LIVE','published':'2010-01-01T00:00:00Z','updated':'2010-01-01T00:00:00Z','categories':cats,'content':'<p><b>'+title+'</b> ('+lat+')</p>'+html,'searchText':title+' '+lat+' '+plain,'snippet':(title+' ('+lat+') '+plain)[:200],'image':'','isCode':'False','url':wiki,'atlas':1,'spk':spk}
     if spo:p['spo']=spo
     new.append(p)
 j['posts']=base+new
